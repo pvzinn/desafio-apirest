@@ -1,0 +1,51 @@
+// 1. Configurações básicas do Prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 2. Nossas Entidades (Tabelas)
+
+model User {
+  id    String  @id @default(uuid()) // Identificador único gerado automaticamente
+  name  String
+  email String  @unique // Não podem existir dois usuários com o mesmo e-mail
+  phone String? // O ponto de interrogação indica que é opcional
+  
+  cards Card[]  // Relação: Um usuário pode ser autor de vários cards
+}
+
+model Board {
+  id      String   @id @default(uuid())
+  name    String
+  
+  columns Column[] // Relação: Um quadro tem várias colunas
+}
+
+model Column {
+  id      String @id @default(uuid())
+  name    String
+  order   Int    // Para sabermos a ordem de exibição da coluna (ex: 1, 2, 3)
+  
+  boardId String // Chave estrangeira ligando ao Quadro
+  board   Board  @relation(fields: [boardId], references: [id])
+  
+  cards   Card[] // Relação: Uma coluna tem vários cards
+}
+
+model Card {
+  id          String  @id @default(uuid())
+  title       String
+  description String?
+  order       Int     // Para sabermos a ordem do card dentro da coluna
+  
+  authorId    String  // Chave estrangeira ligando ao Usuário (Autor)
+  author      User    @relation(fields: [authorId], references: [id])
+  
+  columnId    String  // Chave estrangeira ligando à Coluna
+  column      Column  @relation(fields: [columnId], references: [id])
+}
